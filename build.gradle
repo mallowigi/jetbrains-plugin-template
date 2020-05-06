@@ -1,0 +1,100 @@
+buildscript {
+    repositories {
+        jcenter()
+        maven { url 'https://dl.bintray.com/content/aalmiray/kordamp' }
+    }
+    dependencies {
+        classpath 'org.kordamp:markdown-gradle-plugin:1.0.0'
+    }
+}
+
+
+plugins {
+    id 'org.jetbrains.intellij' version '0.4.18'
+    id 'checkstyle'
+    id "org.jetbrains.kotlin.jvm" version "1.3.20"
+}
+
+repositories {
+    mavenCentral()
+    maven { url 'https://dl.bintray.com/jetbrains/intellij-plugin-service' }
+}
+
+
+dependencies {
+    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+
+}
+apply plugin: 'org.kordamp.markdown.convert'
+
+apply plugin: 'java'
+apply plugin: 'checkstyle'
+sourceCompatibility = JavaVersion.VERSION_1_8
+targetCompatibility = JavaVersion.VERSION_1_8
+
+apply plugin: "kotlin"
+
+//noinspection GroovyAssignabilityCheck,GrUnresolvedAccess
+tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
+    //noinspection GrUnresolvedAccess
+    kotlinOptions {
+        apiVersion = "1.0"
+        jvmTarget = "1.8"
+    }
+}
+
+sourceSets {
+    main {
+        java.srcDirs 'src/main/java'
+        resources.srcDir 'src/main/resources'
+    }
+}
+
+checkstyle {
+    configFile = new File(rootDir, "gradle/checkstyle.xml")
+    toolVersion = "8.1"
+}
+
+markdownToHtml {
+    sourceDir new File("$projectDir/docs")
+    outputDir new File("$projectDir/docs")
+}
+
+version = System.getenv("pluginVersion") ?: pluginVersion
+
+intellij {
+    pluginName 'Project Frame Color'
+    type 'IU'
+    version 'LATEST-EAP-SNAPSHOT'
+    downloadSources true
+    instrumentCode true
+//    sameSinceUntilBuild false
+    updateSinceUntilBuild true
+    alternativeIdePath idePath
+//    systemProperty "idea.platform.prefix","DataGrip"
+
+//    plugins 'org.jetbrains.plugins.go:193.5233.102.83'
+
+    patchPluginXml {
+        version "$version"
+        sinceBuild System.getenv("pluginSinceBuild") ?: sinceBuildP
+        changeNotes file("$projectDir/docs/CHANGELOG.html").text
+//        untilBuild System.getenv("pluginUntilBuild") ?: untilBuildP
+    }
+
+    publishPlugin {
+        token System.getenv("publishToken") ?: publishToken
+        username System.getenv("publishUsername") ?: publishUsername
+        password System.getenv("publishPassword") ?: publishPassword
+    }
+
+//    runIde {
+//        jbrVersion '11_0_3b312'
+//    }
+}
+compileKotlin {
+    kotlinOptions {
+        apiVersion = "1.1"
+        jvmTarget = "1.8"
+    }
+}
